@@ -175,6 +175,186 @@ GOOS=windows GOARCH=amd64 VERSION=v0.1.0 ./scripts/build-release.sh
 dist/
 ```
 
+## 按平台安装与使用
+
+下面以“使用 Lobster 安装 WorkBuddy”为例，分别说明 Windows、macOS、Linux 的推荐使用方式。
+
+通用原则：
+
+- 先从 GitHub Release 下载与你当前系统和 CPU 架构匹配的压缩包
+- 解压后进入目录，直接运行 `lobster` 或 `wb` 即可
+- 如果只是想先看命令会做什么，可以先执行 `--dry-run`
+- 安装完成后建议继续执行 `status`、`next`、`open`、`doctor` 做确认
+
+### Windows
+
+适用产物示例：
+
+- `lobster_<version>_windows_amd64.zip`
+
+建议步骤（PowerShell）：
+
+```powershell
+# 1. 解压下载好的压缩包
+Expand-Archive .\lobster_v0.1.0_windows_amd64.zip -DestinationPath .\lobster
+
+# 2. 进入解压目录
+cd .\lobster\lobster_v0.1.0_windows_amd64
+
+# 3. 先查看帮助
+.\lobster.exe help
+
+# 4. 先做一次演练，不真正执行安装
+.\lobster.exe install workbuddy --dry-run
+
+# 5. 真正安装 WorkBuddy
+.\lobster.exe install workbuddy
+
+# 6. 安装完成后检查状态
+.\lobster.exe status workbuddy
+
+# 7. 查看下一步建议
+.\lobster.exe next workbuddy
+```
+
+如果你更喜欢短命令，也可以使用：
+
+```powershell
+.\wb.exe install
+.\wb.exe status
+.\wb.exe next
+.\wb.exe open
+.\wb.exe doctor
+```
+
+Windows 使用提示：
+
+- 如果你希望在任意目录直接输入 `lobster`，可以把解压目录加入 `PATH`
+- 如果安装后命令暂时不可用，先执行 `.\lobster.exe doctor workbuddy` 查看诊断结果
+
+### macOS
+
+适用产物示例：
+
+- `lobster_<version>_darwin_arm64.tar.gz`，适用于 Apple Silicon Mac
+- `lobster_<version>_darwin_amd64.tar.gz`，适用于 Intel Mac
+
+建议步骤（Terminal）：
+
+```bash
+# 1. 解压下载好的压缩包
+tar -xzf lobster_v0.1.0_darwin_arm64.tar.gz
+
+# 2. 进入解压目录
+cd lobster_v0.1.0_darwin_arm64
+
+# 3. 如有需要，补可执行权限
+chmod +x lobster wb
+
+# 4. 先查看帮助
+./lobster help
+
+# 5. 先做一次演练，不真正执行安装
+./lobster install workbuddy --dry-run
+
+# 6. 真正安装 WorkBuddy
+./lobster install workbuddy
+
+# 7. 安装完成后检查状态
+./lobster status workbuddy
+
+# 8. 查看下一步建议或尝试打开应用
+./lobster next workbuddy
+./lobster open workbuddy
+```
+
+也可以直接使用快捷别名：
+
+```bash
+./wb install
+./wb status
+./wb next
+./wb open
+./wb doctor
+```
+
+macOS 使用提示：
+
+- 如果提示“无法打开”或“已损坏”，通常是系统安全校验或隔离属性导致，可先在终端中直接运行二进制再根据系统提示处理
+- 如果安装后仍然打不开应用，优先执行 `./lobster doctor workbuddy`
+
+### Linux
+
+适用产物示例：
+
+- `lobster_<version>_linux_amd64.tar.gz`
+- `lobster_<version>_linux_arm64.tar.gz`
+
+建议步骤（Shell）：
+
+```bash
+# 1. 解压下载好的压缩包
+tar -xzf lobster_v0.1.0_linux_amd64.tar.gz
+
+# 2. 进入解压目录
+cd lobster_v0.1.0_linux_amd64
+
+# 3. 如有需要，补可执行权限
+chmod +x lobster wb
+
+# 4. 先查看帮助
+./lobster help
+
+# 5. 先做一次演练，不真正执行安装
+./lobster install workbuddy --dry-run
+
+# 6. 真正安装 WorkBuddy
+./lobster install workbuddy
+
+# 7. 安装完成后检查状态
+./lobster status workbuddy
+
+# 8. 查看下一步建议
+./lobster next workbuddy
+```
+
+快捷方式同样可用：
+
+```bash
+./wb install
+./wb status
+./wb next
+./wb open
+./wb doctor
+```
+
+Linux 使用提示：
+
+- 如果运行环境没有桌面，会影响 `open` 行为，但不影响安装和状态检测
+- 如果安装完成后 shell 仍然找不到新命令，先重新打开终端，或执行 `./lobster doctor workbuddy` 查看 PATH 与安装痕迹
+
+### 推荐使用顺序
+
+无论你使用哪个平台，都建议按下面顺序操作：
+
+```bash
+lobster install workbuddy --dry-run
+lobster install workbuddy
+lobster status workbuddy
+lobster next workbuddy
+lobster open workbuddy
+lobster doctor workbuddy
+```
+
+含义分别是：
+
+- `install --dry-run`：先确认当前平台会执行什么安装策略
+- `install`：真正执行安装
+- `status`：检查是否已经安装成功
+- `next`：获取安装后的下一步引导
+- `open`：尝试打开 WorkBuddy
+- `doctor`：遇到问题时输出诊断建议
+
 ## 本地开发
 
 运行主命令：
