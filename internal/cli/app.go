@@ -13,6 +13,7 @@ import (
 	"lobster/internal/launcher"
 	"lobster/internal/platform"
 	"lobster/internal/products"
+	"lobster/internal/tui"
 )
 
 type App struct {
@@ -20,6 +21,7 @@ type App struct {
 	registry       *products.Registry
 	stdout         io.Writer
 	stderr         io.Writer
+	runTUI         func(defaultProduct string) error
 }
 
 func New(defaultProduct string) *App {
@@ -28,6 +30,7 @@ func New(defaultProduct string) *App {
 		registry:       products.NewRegistry(),
 		stdout:         os.Stdout,
 		stderr:         os.Stderr,
+		runTUI:         tui.Run,
 	}
 }
 
@@ -44,6 +47,11 @@ func (a *App) Run(args []string) int {
 		return 0
 	case "list":
 		a.handleList()
+		return 0
+	case "tui":
+		if err := a.handleTUI(args[1:]); err != nil {
+			return a.fail(err)
+		}
 		return 0
 	case "install":
 		if err := a.handleInstall(args[1:]); err != nil {
@@ -81,6 +89,13 @@ func (a *App) handleList() {
 		product, _ := a.registry.Get(key)
 		fmt.Fprintf(a.stdout, "- %s: %s\n", product.Key(), product.Summary())
 	}
+}
+
+func (a *App) handleTUI(args []string) error {
+	if len(args) > 0 {
+		return errors.New("tui 命令暂不接受额外参数")
+	}
+	return a.runTUI(a.defaultProduct)
 }
 
 func (a *App) handleInstall(args []string) error {
@@ -216,6 +231,7 @@ func (a *App) resolveProduct(args []string) (products.Product, error) {
 func (a *App) printUsage() {
 	if a.defaultProduct == "workbuddy" {
 		fmt.Fprintln(a.stdout, "用法：")
+		fmt.Fprintln(a.stdout, "  wb tui")
 		fmt.Fprintln(a.stdout, "  wb install [--dry-run]")
 		fmt.Fprintln(a.stdout, "  wb status")
 		fmt.Fprintln(a.stdout, "  wb open")
@@ -225,6 +241,7 @@ func (a *App) printUsage() {
 	}
 
 	fmt.Fprintln(a.stdout, "用法：")
+	fmt.Fprintln(a.stdout, "  lobster tui")
 	fmt.Fprintln(a.stdout, "  lobster list")
 	fmt.Fprintln(a.stdout, "  lobster install <product> [--dry-run]")
 	fmt.Fprintln(a.stdout, "  lobster status <product>")

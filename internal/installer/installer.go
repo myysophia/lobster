@@ -2,6 +2,7 @@ package installer
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 
@@ -31,7 +32,33 @@ type Result struct {
 	VerifyChecked bool
 }
 
+// ExecIO 用于在运行官方安装器时注入自定义的标准输入输出
+type ExecIO struct {
+	Stdin  io.Reader
+	Stdout io.Writer
+	Stderr io.Writer
+}
+
+var executePlan = defaultExecutePlan
+
+func (s ExecIO) withDefaults() ExecIO {
+	if s.Stdin == nil {
+		s.Stdin = os.Stdin
+	}
+	if s.Stdout == nil {
+		s.Stdout = os.Stdout
+	}
+	if s.Stderr == nil {
+		s.Stderr = os.Stderr
+	}
+	return s
+}
+
 func Run(info platform.Info, product products.Product, dryRun bool) (Result, error) {
+	return RunWithIO(info, product, dryRun, ExecIO{})
+}
+
+func RunWithIO(info platform.Info, product products.Product, dryRun bool, streams ExecIO) (Result, error) {
 	preStatus := detector.Check(info, product)
 
 	plan, err := product.InstallPlan(info)
@@ -80,12 +107,8 @@ func Run(info platform.Info, product products.Product, dryRun bool) (Result, err
 		}, fmt.Errorf("安装计划为空")
 	}
 
-	cmd := exec.Command(plan.Exec[0], plan.Exec[1:]...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-
-	if err := cmd.Run(); err != nil {
+	streams = streams.withDefaults()
+	if err := executePlan(plan, streams); err != nil {
 		postStatus := detector.Check(info, product)
 		return Result{
 			Plan:          plan,
@@ -117,4 +140,12 @@ func Run(info platform.Info, product products.Product, dryRun bool) (Result, err
 		PostStatus:    postStatus,
 		VerifyChecked: true,
 	}, nil
+}
+
+func defaultExecutePlan(plan products.InstallPlan, streams ExecIO) error {
+	cmd := exec.Command(plan.Exec[0], plan.Exec[1:]...)
+	cmd.Stdout = streams.Stdout
+	cmd.Stderr = streams.Stderr
+	cmd.Stdin = streams.Stdin
+	return cmd.Run()
 }

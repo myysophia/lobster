@@ -17,7 +17,7 @@
 
 ### 1.2 当前技术栈
 
-- 语言：`Go 1.24.1`
+- 语言：`Go 1.24.2`
 - 形态：跨平台 CLI
 - 策略：`薄封装`
 
@@ -46,6 +46,7 @@ lobster/
     launcher/
     platform/
     products/
+    tui/
   docs/
     plans/
 ```
@@ -55,6 +56,7 @@ lobster/
 主命令：
 
 ```bash
+lobster tui
 lobster list
 lobster install workbuddy
 lobster status workbuddy
@@ -66,6 +68,7 @@ lobster next workbuddy
 快捷别名：
 
 ```bash
+wb tui
 wb install
 wb status
 wb open
@@ -77,9 +80,11 @@ wb next
 
 ```bash
 go run ./cmd/lobster help
+go run ./cmd/lobster tui
 go run ./cmd/lobster list
 go run ./cmd/lobster install workbuddy --dry-run
 go run ./cmd/wb help
+go run ./cmd/wb tui
 go build ./...
 ```
 
@@ -123,6 +128,12 @@ go build ./...
 - 负责命令解析
 - 串联平台检测、安装、检测、启动、诊断逻辑
 - 保持输出稳定、面向新手
+
+### `internal/tui`
+
+- 提供安装向导型终端交互界面
+- 负责多产品选择、占位页、WorkBuddy 安装向导状态机
+- 复用已有 installer、detector、advisor、launcher 能力
 
 ## 5. 当前阶段优先级
 

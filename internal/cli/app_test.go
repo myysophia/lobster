@@ -20,6 +20,9 @@ func TestRunWithoutArgsPrintsUsage(t *testing.T) {
 	if !strings.Contains(stdout.String(), "lobster install <product>") {
 		t.Fatalf("应输出 lobster 用法，实际：%s", stdout.String())
 	}
+	if !strings.Contains(stdout.String(), "lobster tui") {
+		t.Fatalf("应输出 lobster tui 用法，实际：%s", stdout.String())
+	}
 }
 
 func TestRunUnknownCommandReturnsError(t *testing.T) {
@@ -55,6 +58,9 @@ func TestRunHelpForWorkBuddyAlias(t *testing.T) {
 	if !strings.Contains(stdout.String(), "wb install [--dry-run]") {
 		t.Fatalf("wb 模式应输出 wb 用法，实际：%s", stdout.String())
 	}
+	if !strings.Contains(stdout.String(), "wb tui") {
+		t.Fatalf("wb 模式应输出 wb tui 用法，实际：%s", stdout.String())
+	}
 }
 
 func TestResolveProduct(t *testing.T) {
@@ -75,5 +81,49 @@ func TestResolveProduct(t *testing.T) {
 	emptyApp := New("")
 	if _, err := emptyApp.resolveProduct(nil); err == nil {
 		t.Fatalf("没有默认产品且无参数时应返回错误")
+	}
+}
+
+func TestRunTUICommand(t *testing.T) {
+	app := New("")
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	app.stdout = &stdout
+	app.stderr = &stderr
+
+	calledWith := ""
+	app.runTUI = func(defaultProduct string) error {
+		calledWith = defaultProduct
+		return nil
+	}
+
+	code := app.Run([]string{"tui"})
+	if code != 0 {
+		t.Fatalf("tui 命令应返回 0，实际：%d", code)
+	}
+	if calledWith != "" {
+		t.Fatalf("lobster tui 应传入空默认产品，实际：%q", calledWith)
+	}
+}
+
+func TestRunTUICommandForWB(t *testing.T) {
+	app := New("workbuddy")
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	app.stdout = &stdout
+	app.stderr = &stderr
+
+	calledWith := ""
+	app.runTUI = func(defaultProduct string) error {
+		calledWith = defaultProduct
+		return nil
+	}
+
+	code := app.Run([]string{"tui"})
+	if code != 0 {
+		t.Fatalf("wb tui 命令应返回 0，实际：%d", code)
+	}
+	if calledWith != "workbuddy" {
+		t.Fatalf("wb tui 应传入 workbuddy，实际：%q", calledWith)
 	}
 }

@@ -53,6 +53,7 @@ lobster/
 主命令：
 
 ```bash
+lobster tui
 lobster install workbuddy
 lobster status workbuddy
 lobster open workbuddy
@@ -63,6 +64,7 @@ lobster list
 快捷别名：
 
 ```bash
+wb tui
 wb install
 wb status
 wb open
@@ -87,6 +89,51 @@ wb next
 go test ./...
 go build ./...
 ```
+
+## TUI 安装向导
+
+项目现已支持一个面向新手的终端安装向导。
+
+入口命令：
+
+```bash
+lobster tui
+wb tui
+```
+
+当前行为：
+
+- `lobster tui` 会进入多产品选择页
+- `wb tui` 会直接进入 `WorkBuddy` 安装向导
+- `WorkBuddy` 已接入真实安装流程
+- `ArkClaw`、`Kimi Claw`、`AutoClaw` 暂只显示 `On The Way`
+
+在多产品页中，用户可以用方向键或 `j/k` 切换目标，按下 `Enter` 进入 WorkBuddy 向导或跳转到预留的 `On The Way` 占位页，而未完成的产品始终不会触发真正的安装逻辑，只给出即将开放的提示。`wb tui` 则跳过列表，直接定位 WorkBuddy 安装体验。
+
+WorkBuddy 向导内部会先执行状态探测，再通过 `installer.RunWithIO` 直接运行官方安装器，贴合原生输出；安装中页会在完成后自动转到结果页面，结果页不仅展示依赖 `installer.Result` 的 Outcome，还呈现最新的安装输出、下一步建议，以及可选的诊断详情。
+
+当前 TUI 支持的交互：
+
+- 产品列表中使用 `↑/↓` 或 `j/k` 切换
+- `Enter` 进入产品或执行安装
+- `Esc` 返回上一级
+- `r` 重新检查状态
+- `o` 打开应用
+- `d` 查看诊断详情
+- `q` 退出
+
+适用场景：
+
+- 首次安装和体验 `WorkBuddy`
+- 需要更强引导感的终端交互
+
+不建议在以下场景使用 TUI：
+
+- CI
+- shell 脚本
+- 非交互式终端
+
+这些场景仍建议直接使用现有 CLI 子命令。
 
 ## GitHub Release
 
@@ -134,6 +181,7 @@ dist/
 
 ```bash
 go run ./cmd/lobster help
+go run ./cmd/lobster tui
 go run ./cmd/lobster list
 go run ./cmd/lobster install workbuddy --dry-run
 ```
@@ -142,6 +190,7 @@ go run ./cmd/lobster install workbuddy --dry-run
 
 ```bash
 go run ./cmd/wb help
+go run ./cmd/wb tui
 go run ./cmd/wb install --dry-run
 ```
 
