@@ -97,6 +97,21 @@ func RunWithIO(info platform.Info, product products.Product, dryRun bool, stream
 		}, nil
 	}
 
+	if validator, ok := product.(products.InstallValidator); ok {
+		if err := validator.ValidateInstall(info); err != nil {
+			return Result{
+				Plan:          plan,
+				DryRun:        false,
+				Executed:      false,
+				Succeeded:     false,
+				Outcome:       OutcomeInstallFailed,
+				PreStatus:     preStatus,
+				PostStatus:    preStatus,
+				VerifyChecked: false,
+			}, err
+		}
+	}
+
 	if len(plan.Exec) == 0 {
 		return Result{
 			Plan:       plan,
@@ -147,5 +162,9 @@ func defaultExecutePlan(plan products.InstallPlan, streams ExecIO) error {
 	cmd.Stdout = streams.Stdout
 	cmd.Stderr = streams.Stderr
 	cmd.Stdin = streams.Stdin
+	cmd.Env = append([]string{}, os.Environ()...)
+	for key, value := range plan.Env {
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", key, value))
+	}
 	return cmd.Run()
 }

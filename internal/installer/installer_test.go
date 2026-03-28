@@ -26,6 +26,15 @@ func (fakeProduct) LaunchPlan(platform.Info) products.LaunchPlan {
 	return products.LaunchPlan{}
 }
 
+type fakeValidatedProduct struct {
+	fakeProduct
+	validateErr error
+}
+
+func (f fakeValidatedProduct) ValidateInstall(platform.Info) error {
+	return f.validateErr
+}
+
 func TestRunWithIO_UsesInjectedStreams(t *testing.T) {
 	info := platform.Info{OS: platform.Linux, Arch: "amd64"}
 	plan := products.InstallPlan{Exec: []string{"fake-binary"}}
@@ -85,5 +94,37 @@ func TestRunWithIO_ErrorFromExecutor(t *testing.T) {
 	_, err := RunWithIO(info, prod, false, ExecIO{})
 	if err == nil {
 		t.Fatalf("期望 RunWithIO 返回错误，实际为 nil")
+	}
+}
+
+func TestRunWithIO_StopsWhenValidationFails(t *testing.T) {
+	info := platform.Info{OS: platform.Windows, Arch: "amd64"}
+	prod := fakeValidatedProduct{
+		fakeProduct: fakeProduct{
+			installPlan: products.InstallPlan{Exec: []string{"fake-binary"}},
+		},
+		validateErr: errors.New("missing git bash"),
+	}
+
+	t.Cleanup(func() { executePlan = defaultExecutePlan })
+
+	called := false
+	executePlan = func(products.InstallPlan, ExecIO) error {
+		called = true
+		return nil
+	}
+
+	result, err := RunWithIO(info, prod, false, ExecIO{})
+	if err == nil {
+		t.Fatalf("校验失败时应返回错误")
+	}
+	if called {
+		t.Fatalf("前置校验失败后不应继续执行安装器")
+	}
+	if result.Outcome != OutcomeInstallFailed {
+		t.Fatalf("应标记为安装失败，实际：%s", result.Outcome)
+	}
+	if result.Executed {
+		t.Fatalf("前置校验失败时不应标记为已执行")
 	}
 }

@@ -5,6 +5,7 @@ import "lobster/internal/platform"
 type InstallPlan struct {
 	Summary string
 	Exec    []string
+	Env     map[string]string
 }
 
 type DetectPlan struct {
@@ -25,4 +26,8 @@ type Product interface {
 	InstallPlan(platform.Info) (InstallPlan, error)
 	DetectPlan(platform.Info) DetectPlan
 	LaunchPlan(platform.Info) LaunchPlan
+}
+
+type InstallValidator interface {
+	ValidateInstall(platform.Info) error
 }
