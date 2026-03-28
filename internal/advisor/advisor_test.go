@@ -59,6 +59,29 @@ func TestInstallSummaryForVerifyFailedResult(t *testing.T) {
 	}
 }
 
+func TestInstallSummaryForInstalledButPathNotReady(t *testing.T) {
+	product := products.NewWorkBuddy()
+	result := installer.Result{
+		Outcome: installer.OutcomeInstalled,
+		PostStatus: detector.Status{
+			Installed:       true,
+			HasPathEvidence: true,
+			FoundPaths:      []string{`C:\Users\tester\AppData\Local\codebuddy\bin\codebuddy.exe`},
+			Warnings:        []string{"检测到安装痕迹，但当前终端还没有识别到可执行命令，可能需要重新打开终端。"},
+		},
+	}
+
+	lines := InstallSummary(product, result)
+	joined := strings.Join(lines, "\n")
+
+	if !strings.Contains(joined, "已检测到安装痕迹，先重新打开终端让 PATH 生效") {
+		t.Fatalf("期望包含 PATH 生效建议，实际输出：%s", joined)
+	}
+	if strings.Contains(joined, "lobster open workbuddy") {
+		t.Fatalf("命令尚不可用时不应直接建议 open，实际输出：%s", joined)
+	}
+}
+
 func TestDoctorSummaryForCommandAvailable(t *testing.T) {
 	product := products.NewWorkBuddy()
 	info := platform.Info{OS: platform.Darwin, Arch: "arm64", HasDesktop: true}

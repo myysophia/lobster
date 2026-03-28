@@ -82,3 +82,28 @@ func TestWorkBuddyValidateInstallRequiresGitBashOnWindows(t *testing.T) {
 		t.Fatalf("错误信息应明确提示 Git Bash，实际：%v", err)
 	}
 }
+
+func TestWorkBuddyDetectPlanIncludesWindowsUserInstallPaths(t *testing.T) {
+	subject := NewWorkBuddy()
+	info := platform.Info{OS: platform.Windows, Arch: "amd64"}
+
+	originalLocalAppData := os.Getenv("LOCALAPPDATA")
+	t.Cleanup(func() {
+		_ = os.Setenv("LOCALAPPDATA", originalLocalAppData)
+	})
+
+	localAppData := `C:\Users\tester\AppData\Local`
+	if err := os.Setenv("LOCALAPPDATA", localAppData); err != nil {
+		t.Fatalf("设置 LOCALAPPDATA 失败: %v", err)
+	}
+
+	plan := subject.DetectPlan(info)
+	joined := strings.Join(plan.Paths, "\n")
+
+	if !strings.Contains(joined, `C:\Users\tester\AppData\Local`) || !strings.Contains(joined, "codebuddy/bin/codebuddy.exe") {
+		t.Fatalf("Windows 检测路径应包含用户目录中的 codebuddy.exe，实际：%v", plan.Paths)
+	}
+	if !strings.Contains(joined, `C:\Users\tester\AppData\Local`) || !strings.Contains(joined, "codebuddy/bin") {
+		t.Fatalf("Windows 检测路径应包含用户目录中的 bin 目录，实际：%v", plan.Paths)
+	}
+}

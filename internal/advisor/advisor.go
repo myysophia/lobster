@@ -27,11 +27,13 @@ func InstallSummary(product products.Product, result installer.Result) []string 
 	}
 
 	status := result.PostStatus
-	if status.Installed {
+	if status.CommandAvailable {
 		if status.CommandPath != "" {
 			lines = append(lines, fmt.Sprintf("可执行命令路径：%s", status.CommandPath))
 		}
 		lines = append(lines, fmt.Sprintf("建议下一步：运行 %s，然后在 %s 内完成微信或企业渠道绑定。", openCommandHint(product), product.DisplayName()))
+	} else if status.Installed {
+		lines = append(lines, fmt.Sprintf("建议下一步：已检测到安装痕迹，先重新打开终端让 PATH 生效，再执行 %s。", statusCommandHint(product)))
 	} else {
 		lines = append(lines, fmt.Sprintf("建议下一步：先重新打开终端，再执行 %s 或 %s。", statusCommandHint(product), doctorCommandHint(product)))
 	}

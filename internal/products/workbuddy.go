@@ -92,6 +92,7 @@ func (WorkBuddy) DetectPlan(info platform.Info) DetectPlan {
 			`C:\Program Files\Tencent\WorkBuddy`,
 			`C:\Users\Public\Desktop\WorkBuddy.lnk`,
 		)
+		paths = append(paths, windowsUserInstallPaths()...)
 	case platform.Linux:
 		paths = append(paths,
 			filepath.Join(userHomeDir(), ".local", "bin", "codebuddy"),
@@ -211,4 +212,22 @@ func fileExists(path string) bool {
 	}
 	_, err := workBuddyStat(path)
 	return err == nil
+}
+
+func windowsUserInstallPaths() []string {
+	localAppData := strings.TrimSpace(os.Getenv("LOCALAPPDATA"))
+	if localAppData == "" {
+		localAppData = filepath.Join(userHomeDir(), "AppData", "Local")
+	}
+
+	if strings.TrimSpace(localAppData) == "" {
+		return nil
+	}
+
+	return []string{
+		filepath.Join(localAppData, "codebuddy"),
+		filepath.Join(localAppData, "codebuddy", "bin"),
+		filepath.Join(localAppData, "codebuddy", "bin", "codebuddy.exe"),
+		filepath.Join(localAppData, "codebuddy", "bin", "workbuddy.exe"),
+	}
 }
