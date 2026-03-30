@@ -12,12 +12,12 @@ func TestNewModelForLobsterEntersProductSelect(t *testing.T) {
 	}
 }
 
-func TestNewModelForWBEntersWorkBuddyWelcome(t *testing.T) {
+func TestNewModelForDirectProductEntersWorkBuddyWelcome(t *testing.T) {
 	model := newModel("workbuddy")
 	if model.screen != screenWorkBuddyWelcome {
-		t.Fatalf("wb 模式应直接进入 WorkBuddy 欢迎页，实际：%s", model.screen)
+		t.Fatalf("指定 workbuddy 时应直接进入 WorkBuddy 欢迎页，实际：%s", model.screen)
 	}
 	if model.selectedProduct.Key != "workbuddy" {
-		t.Fatalf("wb 模式应绑定 workbuddy，实际：%s", model.selectedProduct.Key)
+		t.Fatalf("指定 workbuddy 时应绑定 workbuddy，实际：%s", model.selectedProduct.Key)
 	}
 }

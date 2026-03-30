@@ -206,7 +206,7 @@ func (m model) updateWorkBuddyWelcome(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.installOutput = ""
 		m.showDoctor = false
 		m.screen = screenWorkBuddyInstalling
-		return m, installProductCmd(m.defaultProduct, m.selectedProduct, m.platformInfo, m.status)
+		return m, installProductCmd(m.selectedProduct, m.platformInfo)
 	}
 	return m, nil
 }
@@ -237,7 +237,7 @@ func (m model) updateWorkBuddyResult(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.installOutput = ""
 		m.showDoctor = false
 		m.screen = screenWorkBuddyInstalling
-		return m, installProductCmd(m.defaultProduct, m.selectedProduct, m.platformInfo, m.status)
+		return m, installProductCmd(m.selectedProduct, m.platformInfo)
 	}
 	return m, nil
 }

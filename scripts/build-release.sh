@@ -35,7 +35,6 @@ build_binary() {
 }
 
 build_binary lobster
-build_binary wb
 
 mkdir -p "$PACKAGE_DIR"
 

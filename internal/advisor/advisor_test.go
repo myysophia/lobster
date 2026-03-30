@@ -24,13 +24,13 @@ func TestInstallSummaryForInstalledResult(t *testing.T) {
 	lines := InstallSummary(product, result)
 	joined := strings.Join(lines, "\n")
 
-	if !strings.Contains(joined, "安装完成，并已通过安装后检测") {
+	if !strings.Contains(joined, "安装完成。") {
 		t.Fatalf("期望包含安装成功提示，实际输出：%s", joined)
 	}
 	if !strings.Contains(joined, "可执行命令路径：/tmp/codebuddy") {
 		t.Fatalf("期望包含命令路径，实际输出：%s", joined)
 	}
-	if !strings.Contains(joined, "建议下一步") {
+	if !strings.Contains(joined, "下一步：执行 `lobster workbuddy open`") {
 		t.Fatalf("期望包含下一步建议，实际输出：%s", joined)
 	}
 }
@@ -38,24 +38,18 @@ func TestInstallSummaryForInstalledResult(t *testing.T) {
 func TestInstallSummaryForVerifyFailedResult(t *testing.T) {
 	product := products.NewWorkBuddy()
 	result := installer.Result{
-		Outcome: installer.OutcomeVerifyFailed,
-		PostStatus: detector.Status{
-			Installed: false,
-			Warnings:  []string{"尚未检测到 WorkBuddy 的安装痕迹。"},
-		},
+		Outcome:    installer.OutcomeVerifyFailed,
+		PostStatus: detector.Status{Installed: false},
 	}
 
 	lines := InstallSummary(product, result)
 	joined := strings.Join(lines, "\n")
 
-	if !strings.Contains(joined, "安装命令已执行，但安装后仍未检测到明确结果") {
+	if !strings.Contains(joined, "安装后仍未检测到明确结果") {
 		t.Fatalf("期望包含校验失败提示，实际输出：%s", joined)
 	}
-	if !strings.Contains(joined, "lobster doctor workbuddy") {
+	if !strings.Contains(joined, "lobster workbuddy doctor") {
 		t.Fatalf("期望包含诊断建议，实际输出：%s", joined)
-	}
-	if !strings.Contains(joined, "尚未检测到 WorkBuddy 的安装痕迹。") {
-		t.Fatalf("期望原样保留 warning，实际输出：%s", joined)
 	}
 }
 
@@ -74,10 +68,10 @@ func TestInstallSummaryForInstalledButPathNotReady(t *testing.T) {
 	lines := InstallSummary(product, result)
 	joined := strings.Join(lines, "\n")
 
-	if !strings.Contains(joined, "已检测到安装痕迹，先重新打开终端让 PATH 生效") {
+	if !strings.Contains(joined, "下一步：重开终端后执行 `lobster workbuddy status`") {
 		t.Fatalf("期望包含 PATH 生效建议，实际输出：%s", joined)
 	}
-	if strings.Contains(joined, "lobster open workbuddy") {
+	if strings.Contains(joined, "lobster workbuddy open") {
 		t.Fatalf("命令尚不可用时不应直接建议 open，实际输出：%s", joined)
 	}
 }
@@ -102,7 +96,7 @@ func TestDoctorSummaryForCommandAvailable(t *testing.T) {
 	if !strings.Contains(joined, "命中路径：/Applications/WorkBuddy.app") {
 		t.Fatalf("期望包含命中路径，实际输出：%s", joined)
 	}
-	if !strings.Contains(joined, "建议：可以直接执行 `lobster open workbuddy`") {
+	if !strings.Contains(joined, "建议：可以直接执行 `lobster workbuddy open`") {
 		t.Fatalf("期望包含下一步建议，实际输出：%s", joined)
 	}
 }

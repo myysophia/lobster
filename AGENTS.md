@@ -56,24 +56,16 @@ lobster/
 主命令：
 
 ```bash
+lobster help
 lobster tui
 lobster list
-lobster install workbuddy
-lobster status workbuddy
-lobster open workbuddy
-lobster doctor workbuddy
-lobster next workbuddy
-```
-
-快捷别名：
-
-```bash
-wb tui
-wb install
-wb status
-wb open
-wb doctor
-wb next
+lobster workbuddy help
+lobster workbuddy install
+lobster workbuddy status
+lobster workbuddy open
+lobster workbuddy doctor
+lobster workbuddy next
+lobster workbuddy tui
 ```
 
 本地开发常用命令：
@@ -82,9 +74,9 @@ wb next
 go run ./cmd/lobster help
 go run ./cmd/lobster tui
 go run ./cmd/lobster list
-go run ./cmd/lobster install workbuddy --dry-run
-go run ./cmd/wb help
-go run ./cmd/wb tui
+go run ./cmd/lobster workbuddy help
+go run ./cmd/lobster workbuddy tui
+go run ./cmd/lobster workbuddy install --dry-run
 go build ./...
 ```
 
@@ -139,10 +131,10 @@ go build ./...
 
 按现有规划，优先级如下：
 
-1. `install workbuddy`
-2. `status workbuddy`
-3. `open workbuddy`
-4. `doctor workbuddy`
+1. `lobster workbuddy install`
+2. `lobster workbuddy status`
+3. `lobster workbuddy open`
+4. `lobster workbuddy doctor`
 5. `list`
 
 当前里程碑状态可按以下理解：
@@ -252,8 +244,7 @@ go build ./...
 ```bash
 go run ./cmd/lobster help
 go run ./cmd/lobster list
-go run ./cmd/lobster install workbuddy --dry-run
-go run ./cmd/wb help
+go run ./cmd/lobster workbuddy install --dry-run
 ```
 
 后续应逐步补充：
@@ -279,9 +270,9 @@ go run ./cmd/wb help
 ## 11. 已知项目事实
 
 - 当前仓库包含可运行的 CLI 原型
-- `lobster` 与 `wb` 双入口已经存在
+- 当前命令入口统一为 `lobster`
 - 当前工作区未发现 Git 元数据，协作时不要假设可直接使用 Git 工作流
-- 本机环境下 `wb status` 已能检测到 `codebuddy` 命令
+- 本机环境下 `lobster workbuddy status` 已能检测到 `codebuddy` 命令
 
 ## 12. 推荐协作节奏
 

@@ -15,15 +15,15 @@ func InstallSummary(product products.Product, result installer.Result) []string 
 
 	switch result.Outcome {
 	case installer.OutcomeDryRun:
-		lines = append(lines, fmt.Sprintf("%s 还未真正执行安装，本次只展示了安装计划。", product.DisplayName()))
+		lines = append(lines, fmt.Sprintf("%s 尚未真正安装，本次只展示安装计划。", product.DisplayName()))
 	case installer.OutcomeAlreadyInstalled:
-		lines = append(lines, fmt.Sprintf("%s 已经处于可用状态，本次跳过重复安装。", product.DisplayName()))
+		lines = append(lines, fmt.Sprintf("%s 已可用，本次跳过安装。", product.DisplayName()))
 	case installer.OutcomeInstalled:
-		lines = append(lines, fmt.Sprintf("%s 安装完成，并已通过安装后检测。", product.DisplayName()))
+		lines = append(lines, fmt.Sprintf("%s 安装完成。", product.DisplayName()))
 	case installer.OutcomeVerifyFailed:
-		lines = append(lines, fmt.Sprintf("%s 的安装命令已执行，但安装后仍未检测到明确结果。", product.DisplayName()))
+		lines = append(lines, fmt.Sprintf("%s 安装后仍未检测到明确结果。", product.DisplayName()))
 	default:
-		lines = append(lines, fmt.Sprintf("%s 安装未完成。", product.DisplayName()))
+		lines = append(lines, fmt.Sprintf("%s 安装失败。", product.DisplayName()))
 	}
 
 	status := result.PostStatus
@@ -31,14 +31,12 @@ func InstallSummary(product products.Product, result installer.Result) []string 
 		if status.CommandPath != "" {
 			lines = append(lines, fmt.Sprintf("可执行命令路径：%s", status.CommandPath))
 		}
-		lines = append(lines, fmt.Sprintf("建议下一步：运行 %s，然后在 %s 内完成微信或企业渠道绑定。", openCommandHint(product), product.DisplayName()))
+		lines = append(lines, fmt.Sprintf("下一步：执行 %s。", openCommandHint(product)))
 	} else if status.Installed {
-		lines = append(lines, fmt.Sprintf("建议下一步：已检测到安装痕迹，先重新打开终端让 PATH 生效，再执行 %s。", statusCommandHint(product)))
+		lines = append(lines, fmt.Sprintf("下一步：重开终端后执行 %s。", statusCommandHint(product)))
 	} else {
-		lines = append(lines, fmt.Sprintf("建议下一步：先重新打开终端，再执行 %s 或 %s。", statusCommandHint(product), doctorCommandHint(product)))
+		lines = append(lines, fmt.Sprintf("下一步：执行 %s 或 %s。", statusCommandHint(product), doctorCommandHint(product)))
 	}
-
-	lines = append(lines, status.Warnings...)
 	return lines
 }
 
@@ -50,13 +48,13 @@ func NextSummary(product products.Product, status detector.Status) []string {
 		if status.CommandPath != "" {
 			lines = append(lines, fmt.Sprintf("可执行命令路径：%s", status.CommandPath))
 		}
-		lines = append(lines, fmt.Sprintf("建议下一步：运行 %s，然后在 %s 内完成微信或企业渠道绑定。", openCommandHint(product), product.DisplayName()))
+		lines = append(lines, fmt.Sprintf("建议下一步：执行 %s。", openCommandHint(product)))
 	} else if status.Installed {
 		lines = append(lines, fmt.Sprintf("%s 已检测到安装痕迹，但当前命令还不可用。", product.DisplayName()))
-		lines = append(lines, fmt.Sprintf("建议下一步：先重新打开终端，让 PATH 生效后再执行 %s。", statusCommandHint(product)))
+		lines = append(lines, fmt.Sprintf("建议下一步：重开终端后执行 %s。", statusCommandHint(product)))
 	} else {
 		lines = append(lines, fmt.Sprintf("%s 安装后仍未被检测到。", product.DisplayName()))
-		lines = append(lines, fmt.Sprintf("建议下一步：先重新打开终端，再执行 %s 或 %s。", statusCommandHint(product), doctorCommandHint(product)))
+		lines = append(lines, fmt.Sprintf("建议下一步：执行 %s 或 %s。", statusCommandHint(product), doctorCommandHint(product)))
 	}
 
 	lines = append(lines, status.Warnings...)
@@ -100,29 +98,17 @@ func DoctorSummary(product products.Product, info platform.Info, status detector
 }
 
 func openCommandHint(product products.Product) string {
-	if product.Key() == "workbuddy" {
-		return "`lobster open workbuddy` 或 `wb open`"
-	}
-	return fmt.Sprintf("`lobster open %s`", product.Key())
+	return fmt.Sprintf("`lobster %s open`", product.Key())
 }
 
 func statusCommandHint(product products.Product) string {
-	if product.Key() == "workbuddy" {
-		return "`lobster status workbuddy` 或 `wb status`"
-	}
-	return fmt.Sprintf("`lobster status %s`", product.Key())
+	return fmt.Sprintf("`lobster %s status`", product.Key())
 }
 
 func doctorCommandHint(product products.Product) string {
-	if product.Key() == "workbuddy" {
-		return "`lobster doctor workbuddy` 或 `wb doctor`"
-	}
-	return fmt.Sprintf("`lobster doctor %s`", product.Key())
+	return fmt.Sprintf("`lobster %s doctor`", product.Key())
 }
 
 func installCommandHint(product products.Product) string {
-	if product.Key() == "workbuddy" {
-		return "`lobster install workbuddy` 或 `wb install`"
-	}
-	return fmt.Sprintf("`lobster install %s`", product.Key())
+	return fmt.Sprintf("`lobster %s install`", product.Key())
 }

@@ -8,8 +8,8 @@ import (
 
 func (m model) viewWorkBuddyInstalling() string {
 	lines := []string{
-		"正在尽量保留在向导内执行官方安装逻辑，并实时等待结果。",
-		"如果安装器需要权限或交互输入，请直接在当前终端完成。",
+		"正在安装 WorkBuddy，请稍候。",
+		"如果官方安装器需要权限或交互，请直接在当前终端完成。",
 	}
 	if m.installResult.Plan.Summary != "" {
 		lines = append(lines, "安装策略："+m.installResult.Plan.Summary)
@@ -18,8 +18,8 @@ func (m model) viewWorkBuddyInstalling() string {
 	panel := uiStyles.warnPanel.Render(strings.Join(lines, "\n"))
 	hint := uiStyles.tipPanel.Render(strings.Join([]string{
 		uiStyles.sectionTitle.Render("安装提示"),
-		"准备阶段会验证平台信息与权限，若需要交互，请按官方提示操作。",
-		"安装结束后会自动切换到结果页，并保留最近一次安装输出摘要。",
+		"安装结束后会自动校验结果。",
+		"默认只展示简要结果，详细排查请查看诊断详情。",
 	}, "\n"))
 	notice := renderNoticePanel(m.notice, m.err)
 

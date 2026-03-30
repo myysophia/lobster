@@ -33,7 +33,7 @@ func detectProductCmd(item productItem) tea.Cmd {
 	}
 }
 
-func installProductCmd(_ string, item productItem, preInfo platform.Info, _ detector.Status) tea.Cmd {
+func installProductCmd(item productItem, preInfo platform.Info) tea.Cmd {
 	return func() tea.Msg {
 		product, err := resolveProduct(item)
 		if err != nil {

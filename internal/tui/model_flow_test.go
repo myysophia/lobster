@@ -76,6 +76,22 @@ func TestResultScreenIKeyStartsInstall(t *testing.T) {
 	}
 }
 
+func TestShouldShowInstallOutputOnlyForFailure(t *testing.T) {
+	if shouldShowInstallOutput(installer.Result{Outcome: installer.OutcomeInstalled}, nil) {
+		t.Fatalf("安装成功时不应默认展示安装输出")
+	}
+	if !shouldShowInstallOutput(installer.Result{Outcome: installer.OutcomeInstallFailed}, nil) {
+		t.Fatalf("安装失败时应展示安装输出")
+	}
+	if !shouldShowInstallOutput(installer.Result{Outcome: installer.OutcomeInstalled}, assertErr{}) {
+		t.Fatalf("存在错误时应展示安装输出")
+	}
+}
+
+type assertErr struct{}
+
+func (assertErr) Error() string { return "boom" }
+
 func keyMsg(key string) tea.KeyMsg {
 	switch key {
 	case "esc":

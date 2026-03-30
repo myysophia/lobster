@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -17,108 +18,130 @@ import (
 )
 
 type App struct {
-	defaultProduct string
-	registry       *products.Registry
-	stdout         io.Writer
-	stderr         io.Writer
-	runTUI         func(defaultProduct string) error
+	registry *products.Registry
+	stdout   io.Writer
+	stderr   io.Writer
+	runTUI   func(productKey string) error
 }
 
-func New(defaultProduct string) *App {
+func New() *App {
 	return &App{
-		defaultProduct: defaultProduct,
-		registry:       products.NewRegistry(),
-		stdout:         os.Stdout,
-		stderr:         os.Stderr,
-		runTUI:         tui.Run,
+		registry: products.NewRegistry(),
+		stdout:   os.Stdout,
+		stderr:   os.Stderr,
+		runTUI:   tui.Run,
 	}
 }
 
 func (a *App) Run(args []string) int {
 	if len(args) == 0 {
-		a.printUsage()
+		a.printGlobalUsage()
 		return 0
 	}
 
-	cmd := args[0]
-	switch cmd {
+	switch args[0] {
 	case "help", "-h", "--help":
-		a.printUsage()
+		a.printGlobalUsage()
 		return 0
 	case "list":
-		a.handleList()
+		if err := a.handleList(args[1:]); err != nil {
+			return a.fail(err)
+		}
 		return 0
 	case "tui":
-		if err := a.handleTUI(args[1:]); err != nil {
+		if err := a.handleGlobalTUI(args[1:]); err != nil {
 			return a.fail(err)
 		}
 		return 0
-	case "install":
-		if err := a.handleInstall(args[1:]); err != nil {
-			return a.fail(err)
-		}
-		return 0
-	case "status":
-		if err := a.handleStatus(args[1:]); err != nil {
-			return a.fail(err)
-		}
-		return 0
-	case "open":
-		if err := a.handleOpen(args[1:]); err != nil {
-			return a.fail(err)
-		}
-		return 0
-	case "doctor":
-		if err := a.handleDoctor(args[1:]); err != nil {
-			return a.fail(err)
-		}
-		return 0
-	case "next":
-		if err := a.handleNext(args[1:]); err != nil {
-			return a.fail(err)
-		}
-		return 0
-	default:
-		return a.fail(fmt.Errorf("未知命令: %s", cmd))
+	case "install", "status", "open", "doctor", "next":
+		return a.fail(a.oldSyntaxError(args))
 	}
+
+	product, err := a.registry.Get(args[0])
+	if err != nil {
+		return a.fail(err)
+	}
+
+	if err := a.handleProductCommand(product, args[1:]); err != nil {
+		return a.fail(err)
+	}
+	return 0
 }
 
-func (a *App) handleList() {
+func (a *App) handleList(args []string) error {
+	if len(args) > 0 {
+		return errors.New("list 命令不接受额外参数")
+	}
+
 	fmt.Fprintln(a.stdout, "当前支持的产品：")
 	for _, key := range a.registry.Keys() {
 		product, _ := a.registry.Get(key)
 		fmt.Fprintf(a.stdout, "- %s: %s\n", product.Key(), product.Summary())
 	}
+	return nil
 }
 
-func (a *App) handleTUI(args []string) error {
+func (a *App) handleGlobalTUI(args []string) error {
 	if len(args) > 0 {
-		return errors.New("tui 命令暂不接受额外参数")
+		return errors.New("tui 命令不接受额外参数")
 	}
-	return a.runTUI(a.defaultProduct)
+	return a.runTUI("")
 }
 
-func (a *App) handleInstall(args []string) error {
+func (a *App) handleProductCommand(product products.Product, args []string) error {
+	if len(args) == 0 {
+		a.printProductUsage(product)
+		return nil
+	}
+
+	switch args[0] {
+	case "help", "-h", "--help":
+		a.printProductUsage(product)
+		return nil
+	case "tui":
+		return a.handleProductTUI(product, args[1:])
+	case "install":
+		return a.handleInstall(product, args[1:])
+	case "status":
+		return a.handleStatus(product, args[1:])
+	case "open":
+		return a.handleOpen(product, args[1:])
+	case "doctor":
+		return a.handleDoctor(product, args[1:])
+	case "next":
+		return a.handleNext(product, args[1:])
+	default:
+		return fmt.Errorf("未知动作: %s", args[0])
+	}
+}
+
+func (a *App) handleProductTUI(product products.Product, args []string) error {
+	if len(args) > 0 {
+		return errors.New("tui 命令不接受额外参数")
+	}
+	return a.runTUI(product.Key())
+}
+
+func (a *App) handleInstall(product products.Product, args []string) error {
 	dryRun := false
-	productArgs := make([]string, 0, len(args))
 	for _, arg := range args {
 		if arg == "--dry-run" {
 			dryRun = true
 			continue
 		}
-		productArgs = append(productArgs, arg)
-	}
-
-	product, err := a.resolveProduct(productArgs)
-	if err != nil {
-		return err
+		return fmt.Errorf("未知参数: %s", arg)
 	}
 
 	info := platform.Detect()
 	fmt.Fprintf(a.stdout, "平台：%s\n", info.String())
 	fmt.Fprintf(a.stdout, "目标产品：%s\n", product.DisplayName())
 
-	result, err := installer.Run(info, product, dryRun)
+	var output bytes.Buffer
+	result, err := installer.RunWithIO(info, product, dryRun, installer.ExecIO{
+		Stdin:  os.Stdin,
+		Stdout: &output,
+		Stderr: &output,
+	})
 	if result.Plan.Summary != "" {
 		fmt.Fprintf(a.stdout, "安装策略：%s\n", result.Plan.Summary)
 	}
@@ -145,10 +168,9 @@ func (a *App) handleInstall(args []string) error {
 	return nil
 }
 
-func (a *App) handleStatus(args []string) error {
-	product, err := a.resolveProduct(args)
-	if err != nil {
-		return err
+func (a *App) handleStatus(product products.Product, args []string) error {
+	if len(args) > 0 {
+		return errors.New("status 命令不接受额外参数")
 	}
 
 	status := detector.Check(platform.Detect(), product)
@@ -169,10 +191,9 @@ func (a *App) handleStatus(args []string) error {
 	return nil
 }
 
-func (a *App) handleOpen(args []string) error {
-	product, err := a.resolveProduct(args)
-	if err != nil {
-		return err
+func (a *App) handleOpen(product products.Product, args []string) error {
+	if len(args) > 0 {
+		return errors.New("open 命令不接受额外参数")
 	}
 
 	result, err := launcher.Open(platform.Detect(), product)
@@ -184,10 +205,9 @@ func (a *App) handleOpen(args []string) error {
 	return nil
 }
 
-func (a *App) handleDoctor(args []string) error {
-	product, err := a.resolveProduct(args)
-	if err != nil {
-		return err
+func (a *App) handleDoctor(product products.Product, args []string) error {
+	if len(args) > 0 {
+		return errors.New("doctor 命令不接受额外参数")
 	}
 
 	info := platform.Detect()
@@ -198,10 +218,9 @@ func (a *App) handleDoctor(args []string) error {
 	return nil
 }
 
-func (a *App) handleNext(args []string) error {
-	product, err := a.resolveProduct(args)
-	if err != nil {
-		return err
+func (a *App) handleNext(product products.Product, args []string) error {
+	if len(args) > 0 {
+		return errors.New("next 命令不接受额外参数")
 	}
 
 	status := detector.Check(platform.Detect(), product)
@@ -211,51 +230,43 @@ func (a *App) handleNext(args []string) error {
 	return nil
 }
 
-func (a *App) resolveProduct(args []string) (products.Product, error) {
-	if len(args) > 1 {
-		return nil, errors.New("参数过多，请只传一个产品名")
-	}
-
-	key := a.defaultProduct
-	if len(args) == 1 {
-		key = args[0]
-	}
-
-	if key == "" {
-		return nil, errors.New("请指定产品名，例如：lobster install workbuddy")
-	}
-
-	return a.registry.Get(key)
+func (a *App) printGlobalUsage() {
+	fmt.Fprintln(a.stdout, "用法：")
+	fmt.Fprintln(a.stdout, "  lobster help")
+	fmt.Fprintln(a.stdout, "  lobster list")
+	fmt.Fprintln(a.stdout, "  lobster tui")
+	fmt.Fprintln(a.stdout, "  lobster <product> help")
+	fmt.Fprintln(a.stdout, "  lobster <product> install [--dry-run]")
+	fmt.Fprintln(a.stdout, "  lobster <product> status")
+	fmt.Fprintln(a.stdout, "  lobster <product> open")
+	fmt.Fprintln(a.stdout, "  lobster <product> doctor")
+	fmt.Fprintln(a.stdout, "  lobster <product> next")
+	fmt.Fprintln(a.stdout, "  lobster <product> tui")
 }
 
-func (a *App) printUsage() {
-	if a.defaultProduct == "workbuddy" {
-		fmt.Fprintln(a.stdout, "用法：")
-		fmt.Fprintln(a.stdout, "  wb tui")
-		fmt.Fprintln(a.stdout, "  wb install [--dry-run]")
-		fmt.Fprintln(a.stdout, "  wb status")
-		fmt.Fprintln(a.stdout, "  wb open")
-		fmt.Fprintln(a.stdout, "  wb doctor")
-		fmt.Fprintln(a.stdout, "  wb next")
-		return
-	}
-
+func (a *App) printProductUsage(product products.Product) {
 	fmt.Fprintln(a.stdout, "用法：")
-	fmt.Fprintln(a.stdout, "  lobster tui")
-	fmt.Fprintln(a.stdout, "  lobster list")
-	fmt.Fprintln(a.stdout, "  lobster install <product> [--dry-run]")
-	fmt.Fprintln(a.stdout, "  lobster status <product>")
-	fmt.Fprintln(a.stdout, "  lobster open <product>")
-	fmt.Fprintln(a.stdout, "  lobster doctor <product>")
-	fmt.Fprintln(a.stdout, "  lobster next <product>")
+	fmt.Fprintf(a.stdout, "  lobster %s help\n", product.Key())
+	fmt.Fprintf(a.stdout, "  lobster %s install [--dry-run]\n", product.Key())
+	fmt.Fprintf(a.stdout, "  lobster %s status\n", product.Key())
+	fmt.Fprintf(a.stdout, "  lobster %s open\n", product.Key())
+	fmt.Fprintf(a.stdout, "  lobster %s doctor\n", product.Key())
+	fmt.Fprintf(a.stdout, "  lobster %s next\n", product.Key())
+	fmt.Fprintf(a.stdout, "  lobster %s tui\n", product.Key())
+}
+
+func (a *App) oldSyntaxError(args []string) error {
+	action := args[0]
+	if len(args) > 1 {
+		if _, err := a.registry.Get(args[1]); err == nil {
+			return fmt.Errorf("旧语法已移除，请改用 `lobster %s %s`", args[1], action)
+		}
+	}
+	return fmt.Errorf("旧语法已移除，请改用 `lobster <product> %s`", action)
 }
 
 func (a *App) fail(err error) int {
 	fmt.Fprintf(a.stderr, "错误：%s\n", err)
-	if a.defaultProduct == "workbuddy" {
-		fmt.Fprintln(a.stderr, "试试 `wb help` 查看可用命令。")
-	} else {
-		fmt.Fprintln(a.stderr, "试试 `lobster help` 查看可用命令。")
-	}
+	fmt.Fprintln(a.stderr, "试试 `lobster help` 查看可用命令。")
 	return 1
 }

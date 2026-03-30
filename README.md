@@ -50,38 +50,36 @@ lobster/
 
 ## 当前 CLI 约定
 
-主命令：
+全局命令：
 
 ```bash
+lobster help
 lobster tui
-lobster install workbuddy
-lobster status workbuddy
-lobster open workbuddy
-lobster doctor workbuddy
 lobster list
 ```
 
-快捷别名：
+产品命令：
 
 ```bash
-wb tui
-wb install
-wb status
-wb open
-wb doctor
-wb next
+lobster workbuddy help
+lobster workbuddy install [--dry-run]
+lobster workbuddy status
+lobster workbuddy open
+lobster workbuddy doctor
+lobster workbuddy next
+lobster workbuddy tui
 ```
 
 ## 当前实现状态
 
-截至 2026-03-23，当前原型已经具备以下行为：
+截至 2026-03-28，当前原型已经具备以下行为：
 
-- `lobster install workbuddy --dry-run` 会输出平台识别结果、安装策略与官方安装命令，但不会真正执行安装
-- `lobster install workbuddy` 会先做安装前检测；如果当前已经检测到可用命令，会跳过重复安装
+- `lobster workbuddy install --dry-run` 会输出平台识别结果、安装策略与官方安装命令，但不会真正执行安装
+- `lobster workbuddy install` 会先做安装前检测；如果当前已经检测到可用命令，会跳过重复安装
 - 安装命令执行后会立即做安装后复检，并根据结果输出下一步建议
-- `lobster status workbuddy` 会区分“已检测到可用安装”“已检测到安装痕迹但命令暂不可用”“未检测到安装”
-- `lobster doctor workbuddy` 会输出命令可用性、命中路径、环境提示与建议操作
-- `wb next`、`wb open` 等快捷别名与主命令保持并行可用
+- `lobster workbuddy status` 会区分“已检测到可用安装”“已检测到安装痕迹但命令暂不可用”“未检测到安装”
+- `lobster workbuddy doctor` 会输出命令可用性、命中路径、环境提示与建议操作
+- 默认安装输出已收敛为简洁模式，不再回显官方安装器全过程日志
 
 当前已补充的基础验证包括：
 
@@ -98,19 +96,19 @@ go build ./...
 
 ```bash
 lobster tui
-wb tui
+lobster workbuddy tui
 ```
 
 当前行为：
 
 - `lobster tui` 会进入多产品选择页
-- `wb tui` 会直接进入 `WorkBuddy` 安装向导
+- `lobster workbuddy tui` 会直接进入 `WorkBuddy` 安装向导
 - `WorkBuddy` 已接入真实安装流程
 - `ArkClaw`、`Kimi Claw`、`AutoClaw` 暂只显示 `On The Way`
 
-在多产品页中，用户可以用方向键或 `j/k` 切换目标，按下 `Enter` 进入 WorkBuddy 向导或跳转到预留的 `On The Way` 占位页，而未完成的产品始终不会触发真正的安装逻辑，只给出即将开放的提示。`wb tui` 则跳过列表，直接定位 WorkBuddy 安装体验。
+在多产品页中，用户可以用方向键或 `j/k` 切换目标，按下 `Enter` 进入 WorkBuddy 向导或跳转到预留的 `On The Way` 占位页，而未完成的产品始终不会触发真正的安装逻辑，只给出即将开放的提示。`lobster workbuddy tui` 则跳过列表，直接定位 WorkBuddy 安装体验。
 
-WorkBuddy 向导内部会先执行状态探测，再通过 `installer.RunWithIO` 直接运行官方安装器，贴合原生输出；安装中页会在完成后自动转到结果页面，结果页不仅展示依赖 `installer.Result` 的 Outcome，还呈现最新的安装输出、下一步建议，以及可选的诊断详情。
+WorkBuddy 向导内部会先执行状态探测，再通过 `installer.RunWithIO` 直接运行官方安装器。安装中页保持简短提示，结果页默认展示简版结果与下一步建议，仅在失败或校验未通过时展示最近一次安装输出摘要。
 
 当前 TUI 支持的交互：
 
@@ -158,7 +156,7 @@ git push origin v0.1.0
 
 - 包名格式：`lobster_<version>_<os>_<arch>.tar.gz`
 - Windows 包名格式：`lobster_<version>_<os>_<arch>.zip`
-- 每个压缩包内同时包含 `lobster`、`wb` 和 `README.md`
+- 每个压缩包内包含 `lobster` 和 `README.md`
 - Release 中会同时上传对应的 `*.sha256` 文件与汇总 `SHA256SUMS`
 
 本地手动打包：
@@ -182,7 +180,7 @@ dist/
 通用原则：
 
 - 先从 GitHub Release 下载与你当前系统和 CPU 架构匹配的压缩包
-- 解压后进入目录，直接运行 `lobster` 或 `wb` 即可
+- 解压后进入目录，直接运行 `lobster` 即可
 - 如果只是想先看命令会做什么，可以先执行 `--dry-run`
 - 安装完成后建议继续执行 `status`、`next`、`open`、`doctor` 做确认
 
@@ -205,32 +203,22 @@ cd .\lobster\lobster_v0.1.0_windows_amd64
 .\lobster.exe help
 
 # 4. 先做一次演练，不真正执行安装
-.\lobster.exe install workbuddy --dry-run
+.\lobster.exe workbuddy install --dry-run
 
 # 5. 真正安装 WorkBuddy
-.\lobster.exe install workbuddy
+.\lobster.exe workbuddy install
 
 # 6. 安装完成后检查状态
-.\lobster.exe status workbuddy
+.\lobster.exe workbuddy status
 
 # 7. 查看下一步建议
-.\lobster.exe next workbuddy
-```
-
-如果你更喜欢短命令，也可以使用：
-
-```powershell
-.\wb.exe install
-.\wb.exe status
-.\wb.exe next
-.\wb.exe open
-.\wb.exe doctor
+.\\lobster.exe workbuddy next
 ```
 
 Windows 使用提示：
 
 - 如果你希望在任意目录直接输入 `lobster`，可以把解压目录加入 `PATH`
-- 如果安装后命令暂时不可用，先执行 `.\lobster.exe doctor workbuddy` 查看诊断结果
+- 如果安装后命令暂时不可用，先执行 `.\lobster.exe workbuddy doctor` 查看诊断结果
 
 ### macOS
 
@@ -249,39 +237,29 @@ tar -xzf lobster_v0.1.0_darwin_arm64.tar.gz
 cd lobster_v0.1.0_darwin_arm64
 
 # 3. 如有需要，补可执行权限
-chmod +x lobster wb
+chmod +x lobster
 
 # 4. 先查看帮助
 ./lobster help
 
 # 5. 先做一次演练，不真正执行安装
-./lobster install workbuddy --dry-run
+./lobster workbuddy install --dry-run
 
 # 6. 真正安装 WorkBuddy
-./lobster install workbuddy
+./lobster workbuddy install
 
 # 7. 安装完成后检查状态
-./lobster status workbuddy
+./lobster workbuddy status
 
 # 8. 查看下一步建议或尝试打开应用
-./lobster next workbuddy
-./lobster open workbuddy
-```
-
-也可以直接使用快捷别名：
-
-```bash
-./wb install
-./wb status
-./wb next
-./wb open
-./wb doctor
+./lobster workbuddy next
+./lobster workbuddy open
 ```
 
 macOS 使用提示：
 
 - 如果提示“无法打开”或“已损坏”，通常是系统安全校验或隔离属性导致，可先在终端中直接运行二进制再根据系统提示处理
-- 如果安装后仍然打不开应用，优先执行 `./lobster doctor workbuddy`
+- 如果安装后仍然打不开应用，优先执行 `./lobster workbuddy doctor`
 
 ### Linux
 
@@ -300,50 +278,40 @@ tar -xzf lobster_v0.1.0_linux_amd64.tar.gz
 cd lobster_v0.1.0_linux_amd64
 
 # 3. 如有需要，补可执行权限
-chmod +x lobster wb
+chmod +x lobster
 
 # 4. 先查看帮助
 ./lobster help
 
 # 5. 先做一次演练，不真正执行安装
-./lobster install workbuddy --dry-run
+./lobster workbuddy install --dry-run
 
 # 6. 真正安装 WorkBuddy
-./lobster install workbuddy
+./lobster workbuddy install
 
 # 7. 安装完成后检查状态
-./lobster status workbuddy
+./lobster workbuddy status
 
 # 8. 查看下一步建议
-./lobster next workbuddy
-```
-
-快捷方式同样可用：
-
-```bash
-./wb install
-./wb status
-./wb next
-./wb open
-./wb doctor
+./lobster workbuddy next
 ```
 
 Linux 使用提示：
 
 - 如果运行环境没有桌面，会影响 `open` 行为，但不影响安装和状态检测
-- 如果安装完成后 shell 仍然找不到新命令，先重新打开终端，或执行 `./lobster doctor workbuddy` 查看 PATH 与安装痕迹
+- 如果安装完成后 shell 仍然找不到新命令，先重新打开终端，或执行 `./lobster workbuddy doctor` 查看 PATH 与安装痕迹
 
 ### 推荐使用顺序
 
 无论你使用哪个平台，都建议按下面顺序操作：
 
 ```bash
-lobster install workbuddy --dry-run
-lobster install workbuddy
-lobster status workbuddy
-lobster next workbuddy
-lobster open workbuddy
-lobster doctor workbuddy
+lobster workbuddy install --dry-run
+lobster workbuddy install
+lobster workbuddy status
+lobster workbuddy next
+lobster workbuddy open
+lobster workbuddy doctor
 ```
 
 含义分别是：
@@ -363,15 +331,9 @@ lobster doctor workbuddy
 go run ./cmd/lobster help
 go run ./cmd/lobster tui
 go run ./cmd/lobster list
-go run ./cmd/lobster install workbuddy --dry-run
-```
-
-运行 WorkBuddy 快捷别名：
-
-```bash
-go run ./cmd/wb help
-go run ./cmd/wb tui
-go run ./cmd/wb install --dry-run
+go run ./cmd/lobster workbuddy help
+go run ./cmd/lobster workbuddy tui
+go run ./cmd/lobster workbuddy install --dry-run
 ```
 
 编译：

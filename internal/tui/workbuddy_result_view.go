@@ -49,11 +49,14 @@ func (m model) viewWorkBuddyResult() string {
 	}
 
 	outputPanel := ""
-	if output := compactOutput(m.installOutput); output != "" {
-		outputPanel = uiStyles.tipPanel.Render(strings.Join([]string{
-			uiStyles.sectionTitle.Render("最近安装输出"),
-			output,
-		}, "\n"))
+	if shouldShowInstallOutput(m.installResult, m.err) {
+		output := compactOutput(m.installOutput)
+		if output != "" {
+			outputPanel = uiStyles.tipPanel.Render(strings.Join([]string{
+				uiStyles.sectionTitle.Render("最近安装输出"),
+				output,
+			}, "\n"))
+		}
 	}
 
 	notice := renderNoticePanel("", m.err)
@@ -69,4 +72,16 @@ func (m model) viewWorkBuddyResult() string {
 		notice,
 		renderFooter("r 重新检查", "o 打开应用", "d 诊断详情", "i 再装一次", "Esc 返回", "q 退出"),
 	))
+}
+
+func shouldShowInstallOutput(result installer.Result, err error) bool {
+	if err != nil {
+		return true
+	}
+	switch result.Outcome {
+	case installer.OutcomeInstallFailed, installer.OutcomeVerifyFailed:
+		return true
+	default:
+		return false
+	}
 }
