@@ -10,18 +10,18 @@ Lobster 是一个面向多种 Claw 系产品的统一安装入口项目。
 
 ## 当前范围
 
-第一版聚焦 WorkBuddy：
+当前已落地能力：
 
-- 统一入口安装
-- 安装结果校验
-- 首次启动引导
-- 常见错误诊断
+- WorkBuddy：统一入口安装、安装结果校验、首次启动引导、常见错误诊断
+- AutoClaw：按平台拉起官方安装包下载链接，覆盖 Windows / macOS Apple Silicon / macOS Intel
+- QoderWork：按平台拉起官方安装包下载链接，覆盖 Windows / macOS Apple Silicon / macOS Intel
 
-后续预留支持：
+后续仍预留支持：
 
 - ArkClaw
 - Kimi Claw
 - AutoClaw
+- QoderWork
 - 其他同类产品
 
 ## 当前建议
@@ -68,17 +68,34 @@ lobster workbuddy open
 lobster workbuddy doctor
 lobster workbuddy next
 lobster workbuddy tui
+lobster autoclaw help
+lobster autoclaw install [--dry-run]
+lobster autoclaw status
+lobster autoclaw open
+lobster autoclaw doctor
+lobster autoclaw next
+lobster autoclaw tui
+lobster qoderwork help
+lobster qoderwork install [--dry-run]
+lobster qoderwork status
+lobster qoderwork open
+lobster qoderwork doctor
+lobster qoderwork next
+lobster qoderwork tui
 ```
 
 ## 当前实现状态
 
-截至 2026-03-28，当前原型已经具备以下行为：
+截至 2026-04-02，当前原型已经具备以下行为：
 
 - `lobster workbuddy install --dry-run` 会输出平台识别结果、安装策略与官方安装命令，但不会真正执行安装
 - `lobster workbuddy install` 会先做安装前检测；如果当前已经检测到可用命令，会跳过重复安装
 - 安装命令执行后会立即做安装后复检，并根据结果输出下一步建议
 - `lobster workbuddy status` 会区分“已检测到可用安装”“已检测到安装痕迹但命令暂不可用”“未检测到安装”
 - `lobster workbuddy doctor` 会输出命令可用性、命中路径、环境提示与建议操作
+- `lobster autoclaw install --dry-run` 会按当前平台输出 AutoClaw 官方安装包直链；当前支持 `windows/amd64`、`darwin/arm64`、`darwin/amd64`
+- `lobster qoderwork install --dry-run` 会按当前平台输出 QoderWork 官方安装包直链；当前支持 `windows/amd64`、`darwin/arm64`、`darwin/amd64`
+- `lobster autoclaw install` 与 `lobster qoderwork install` 会直接拉起官方下载流程，并提示用户安装完成后执行 `status` 或 `doctor` 复查
 - 默认安装输出已收敛为简洁模式，不再回显官方安装器全过程日志
 
 当前已补充的基础验证包括：
@@ -104,7 +121,8 @@ lobster workbuddy tui
 - `lobster tui` 会进入多产品选择页
 - `lobster workbuddy tui` 会直接进入 `WorkBuddy` 安装向导
 - `WorkBuddy` 已接入真实安装流程
-- `ArkClaw`、`Kimi Claw`、`AutoClaw` 暂只显示 `On The Way`
+- `ArkClaw`、`Kimi Claw` 暂只显示 `On The Way`
+- `AutoClaw`、`QoderWork` 当前已在 CLI 中接入官方下载流程，但 TUI 里仍先保留 `On The Way`
 
 在多产品页中，用户可以用方向键或 `j/k` 切换目标，按下 `Enter` 进入 WorkBuddy 向导或跳转到预留的 `On The Way` 占位页，而未完成的产品始终不会触发真正的安装逻辑，只给出即将开放的提示。`lobster workbuddy tui` 则跳过列表，直接定位 WorkBuddy 安装体验。
 

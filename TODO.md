@@ -48,5 +48,21 @@
 - [x] 同步 README 与 AGENTS 命令文档 - 保证用户文档与协作约束使用新语法，成功标准：核心文档示例统一切换到 `lobster workbuddy ...` ✅ (完成时间：2026-03-28 16:55)
 - [x] 补充解析与输出回归测试 - 覆盖新语法、旧语法拒绝、产品直达 TUI 与结果视图输出策略，成功标准：`go test ./...` 与 `go build ./...` 通过 ✅ (完成时间：2026-03-28 16:55)
 
+## [AutoClaw / QoderWork 第一阶段接入] (优先级: 高)
+创建时间：2026-04-02 10:30
+更新时间：2026-04-02 11:20 - 完成产品骨架、注册表、TUI 列表、帮助命令与基础测试接入
+更新时间：2026-04-02 14:35 - 完成逐平台官方下载计划、安装交接结果模型与基础检测启动策略
+
+- [x] 新增 AutoClaw 产品骨架 - 接入 `Product` 抽象并提供统一入口，成功标准：`lobster autoclaw help` 可用且 `install` 明确提示自动安装未接入 ✅ (完成时间：2026-04-02 11:20)
+- [x] 新增 QoderWork 产品骨架 - 接入 `Product` 抽象并提供统一入口，成功标准：`lobster qoderwork help` 可用且 `install` 明确提示自动安装未接入 ✅ (完成时间：2026-04-02 11:20)
+- [x] 更新产品注册表与列表输出 - 让 CLI `list` 可见两个新产品，成功标准：`lobster list` 展示 `autoclaw`、`qoderwork`、`workbuddy` ✅ (完成时间：2026-04-02 11:20)
+- [x] 更新 TUI 产品列表与直达逻辑 - 让 `lobster autoclaw tui`、`lobster qoderwork tui` 直接进入筹备页，成功标准：不会误触发 WorkBuddy 流程 ✅ (完成时间：2026-04-02 11:20)
+- [x] 修正多产品通用检测文案 - 避免 `status/doctor` 串出 WorkBuddy 名称，成功标准：未检测到安装时使用当前产品显示名 ✅ (完成时间：2026-04-02 11:20)
+- [x] 同步 README / AGENTS 与基础测试 - 保证文档和测试反映当前接入阶段，成功标准：`go test ./...` 与 `go build ./...` 通过 ✅ (完成时间：2026-04-02 11:20)
+- [x] 接入 AutoClaw 逐平台官方下载计划 - 按 `windows/amd64`、`darwin/arm64`、`darwin/amd64` 输出已验证直链，成功标准：`lobster autoclaw install --dry-run` 能给出正确下载地址 ✅ (完成时间：2026-04-02 14:35)
+- [x] 接入 QoderWork 逐平台官方下载计划 - 按 `windows/amd64`、`darwin/arm64`、`darwin/amd64` 输出已验证直链，成功标准：`lobster qoderwork install --dry-run` 能给出正确下载地址 ✅ (完成时间：2026-04-02 14:35)
+- [x] 补充“官方下载交接”安装结果模型 - 支持 `install` 拉起下载后不误报校验失败，成功标准：CLI 能输出“完成安装后复查 status/doctor” ✅ (完成时间：2026-04-02 14:35)
+- [x] 为 AutoClaw / QoderWork 补基础检测与启动策略 - 先覆盖常见路径与应用名，成功标准：`status/open/doctor` 不再只停留在骨架提示 ✅ (完成时间：2026-04-02 14:35)
+
 ## 已完成任务
 - (此处存放完成的任务历史)

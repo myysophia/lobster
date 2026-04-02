@@ -15,6 +15,12 @@
 - 在安装完成后给出明确的下一步引导
 - 对常见失败场景输出可理解的诊断建议
 
+当前多产品接入状态：
+
+- `WorkBuddy`：真实安装链路已接通
+- `AutoClaw`：已接入按平台官方下载计划、基础检测与启动策略
+- `QoderWork`：已接入按平台官方下载计划、基础检测与启动策略
+
 ### 1.2 当前技术栈
 
 - 语言：`Go 1.24.2`
@@ -66,6 +72,20 @@ lobster workbuddy open
 lobster workbuddy doctor
 lobster workbuddy next
 lobster workbuddy tui
+lobster autoclaw help
+lobster autoclaw install
+lobster autoclaw status
+lobster autoclaw open
+lobster autoclaw doctor
+lobster autoclaw next
+lobster autoclaw tui
+lobster qoderwork help
+lobster qoderwork install
+lobster qoderwork status
+lobster qoderwork open
+lobster qoderwork doctor
+lobster qoderwork next
+lobster qoderwork tui
 ```
 
 本地开发常用命令：
@@ -77,6 +97,10 @@ go run ./cmd/lobster list
 go run ./cmd/lobster workbuddy help
 go run ./cmd/lobster workbuddy tui
 go run ./cmd/lobster workbuddy install --dry-run
+go run ./cmd/lobster autoclaw help
+go run ./cmd/lobster autoclaw install --dry-run
+go run ./cmd/lobster qoderwork help
+go run ./cmd/lobster qoderwork install --dry-run
 go build ./...
 ```
 
@@ -114,6 +138,7 @@ go build ./...
 - 定义产品抽象
 - 维护产品注册表
 - 为不同产品提供安装、检测、启动策略
+- 若产品暂不适合静默安装，也允许先接入“官方下载交接”模式
 
 ### `internal/cli`
 
@@ -144,6 +169,11 @@ go build ./...
 - `M3`：正在补足安装闭环与安装后校验
 - `M4`：正在补足可操作的诊断能力
 - `M5`：保留多产品扩展接口，但不提前过度实现
+
+当前多产品阶段补充：
+
+- `AutoClaw` 与 `QoderWork` 已完成“逐平台下载计划接入”
+- 下一阶段重点是继续补强安装后检测准确率与 TUI 体验
 
 ## 6. 代理协作行为准则
 
@@ -273,6 +303,7 @@ go run ./cmd/lobster workbuddy install --dry-run
 - 当前命令入口统一为 `lobster`
 - 当前工作区未发现 Git 元数据，协作时不要假设可直接使用 Git 工作流
 - 本机环境下 `lobster workbuddy status` 已能检测到 `codebuddy` 命令
+- `lobster autoclaw install --dry-run` 与 `lobster qoderwork install --dry-run` 当前已可输出平台对应的官方下载链接
 
 ## 12. 推荐协作节奏
 
