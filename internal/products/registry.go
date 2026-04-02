@@ -11,6 +11,8 @@ type Registry struct {
 
 func NewRegistry() *Registry {
 	items := []Product{
+		NewAutoClaw(),
+		NewQoderWork(),
 		NewWorkBuddy(),
 	}
 

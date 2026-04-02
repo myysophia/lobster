@@ -3,9 +3,10 @@ package products
 import "lobster/internal/platform"
 
 type InstallPlan struct {
-	Summary string
-	Exec    []string
-	Env     map[string]string
+	Summary    string
+	Exec       []string
+	Env        map[string]string
+	SkipVerify bool
 }
 
 type DetectPlan struct {

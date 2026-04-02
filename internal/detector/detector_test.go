@@ -144,6 +144,9 @@ func TestCheckWhenNothingDetected(t *testing.T) {
 	if len(status.Warnings) == 0 {
 		t.Fatalf("完全未命中时应给出 warning")
 	}
+	if status.Warnings[0] != "尚未检测到 Fake 的安装痕迹。" {
+		t.Fatalf("warning 应使用产品显示名，实际：%v", status.Warnings)
+	}
 	if status.Notes[0] != "note" {
 		t.Fatalf("notes 应保留 detect plan 内容，实际：%v", status.Notes)
 	}

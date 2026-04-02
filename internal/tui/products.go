@@ -38,6 +38,13 @@ func defaultProducts() []productItem {
 			Available:   false,
 			Badge:       "On The Way",
 		},
+		{
+			Key:         "qoderwork",
+			DisplayName: "QoderWork",
+			Summary:     "统一入口已预留，当前版本先接入产品骨架，安装能力后续补齐。",
+			Available:   false,
+			Badge:       "On The Way",
+		},
 	}
 }
 

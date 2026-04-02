@@ -1,6 +1,7 @@
 package detector
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 
@@ -57,7 +58,7 @@ func Check(info platform.Info, product products.Product) Status {
 	}
 
 	if !status.Installed {
-		status.Warnings = append(status.Warnings, "尚未检测到 WorkBuddy 的安装痕迹。")
+		status.Warnings = append(status.Warnings, fmt.Sprintf("尚未检测到 %s 的安装痕迹。", product.DisplayName()))
 	}
 
 	return status

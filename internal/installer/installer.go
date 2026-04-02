@@ -17,6 +17,7 @@ const (
 	OutcomeDryRun           Outcome = "dry_run"
 	OutcomeAlreadyInstalled Outcome = "already_installed"
 	OutcomeInstalled        Outcome = "installed"
+	OutcomeActionRequired   Outcome = "action_required"
 	OutcomeInstallFailed    Outcome = "install_failed"
 	OutcomeVerifyFailed     Outcome = "verify_failed"
 )
@@ -135,6 +136,20 @@ func RunWithIO(info platform.Info, product products.Product, dryRun bool, stream
 			PostStatus:    postStatus,
 			VerifyChecked: true,
 		}, fmt.Errorf("官方安装器执行失败: %w", err)
+	}
+
+	if plan.SkipVerify {
+		postStatus := detector.Check(info, product)
+		return Result{
+			Plan:          plan,
+			DryRun:        false,
+			Executed:      true,
+			Succeeded:     true,
+			Outcome:       OutcomeActionRequired,
+			PreStatus:     preStatus,
+			PostStatus:    postStatus,
+			VerifyChecked: false,
+		}, nil
 	}
 
 	postStatus := detector.Check(info, product)

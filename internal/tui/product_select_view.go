@@ -9,7 +9,7 @@ import (
 func (m model) viewProductSelect() string {
 	hero := uiStyles.hero.Render(strings.Join([]string{
 		uiStyles.title.Render("Lobster · 统一安装入口"),
-		uiStyles.subtitle.Render("WorkBuddy 安装向导已就绪，其他产品在路上，先一步完成体验。"),
+		uiStyles.subtitle.Render("WorkBuddy 已可安装，AutoClaw 与 QoderWork 已接入产品入口。"),
 		uiStyles.tagLine.Render("一次启动，后续同一命令即可更新、启动与诊断。"),
 	}, "\n"))
 

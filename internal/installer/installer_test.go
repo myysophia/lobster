@@ -128,3 +128,41 @@ func TestRunWithIO_StopsWhenValidationFails(t *testing.T) {
 		t.Fatalf("前置校验失败时不应标记为已执行")
 	}
 }
+
+func TestRunWithIO_ReturnsActionRequiredWhenPlanSkipsVerify(t *testing.T) {
+	info := platform.Info{OS: platform.Darwin, Arch: "arm64"}
+	prod := fakeProduct{
+		installPlan: products.InstallPlan{
+			Exec:        []string{"open", "https://example.com/download.dmg"},
+			SkipVerify:  true,
+		},
+	}
+
+	t.Cleanup(func() { executePlan = defaultExecutePlan })
+
+	called := false
+	executePlan = func(products.InstallPlan, ExecIO) error {
+		called = true
+		return nil
+	}
+
+	result, err := RunWithIO(info, prod, false, ExecIO{})
+	if err != nil {
+		t.Fatalf("跳过安装后校验时不应报错，实际：%v", err)
+	}
+	if !called {
+		t.Fatalf("应执行安装计划")
+	}
+	if result.Outcome != OutcomeActionRequired {
+		t.Fatalf("期望 Outcome=%s，实际：%s", OutcomeActionRequired, result.Outcome)
+	}
+	if !result.Executed {
+		t.Fatalf("应标记为已执行")
+	}
+	if !result.Succeeded {
+		t.Fatalf("交接给官方下载流程时应视为成功")
+	}
+	if result.VerifyChecked {
+		t.Fatalf("SkipVerify=true 时不应继续做安装后校验")
+	}
+}

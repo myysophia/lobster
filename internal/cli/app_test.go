@@ -76,6 +76,51 @@ func TestProductHelp(t *testing.T) {
 	}
 }
 
+func TestAdditionalProductHelp(t *testing.T) {
+	app := New()
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	app.stdout = &stdout
+	app.stderr = &stderr
+
+	code := app.Run([]string{"autoclaw", "help"})
+	if code != 0 {
+		t.Fatalf("AutoClaw help 应返回 0，实际：%d", code)
+	}
+	if !strings.Contains(stdout.String(), "lobster autoclaw install [--dry-run]") {
+		t.Fatalf("应输出 autoclaw 子命令用法，实际：%s", stdout.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+
+	code = app.Run([]string{"qoderwork", "help"})
+	if code != 0 {
+		t.Fatalf("QoderWork help 应返回 0，实际：%d", code)
+	}
+	if !strings.Contains(stdout.String(), "lobster qoderwork install [--dry-run]") {
+		t.Fatalf("应输出 qoderwork 子命令用法，实际：%s", stdout.String())
+	}
+}
+
+func TestListShowsAdditionalProducts(t *testing.T) {
+	app := New()
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	app.stdout = &stdout
+	app.stderr = &stderr
+
+	code := app.Run([]string{"list"})
+	if code != 0 {
+		t.Fatalf("list 应返回 0，实际：%d", code)
+	}
+
+	output := stdout.String()
+	if !strings.Contains(output, "autoclaw") || !strings.Contains(output, "qoderwork") || !strings.Contains(output, "workbuddy") {
+		t.Fatalf("list 应展示三个产品，实际：%s", output)
+	}
+}
+
 func TestRunGlobalTUICommand(t *testing.T) {
 	app := New()
 	var stdout bytes.Buffer

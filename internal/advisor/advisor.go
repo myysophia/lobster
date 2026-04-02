@@ -20,10 +20,17 @@ func InstallSummary(product products.Product, result installer.Result) []string 
 		lines = append(lines, fmt.Sprintf("%s 已可用，本次跳过安装。", product.DisplayName()))
 	case installer.OutcomeInstalled:
 		lines = append(lines, fmt.Sprintf("%s 安装完成。", product.DisplayName()))
+	case installer.OutcomeActionRequired:
+		lines = append(lines, fmt.Sprintf("%s 安装入口已打开，请按官方引导完成安装。", product.DisplayName()))
 	case installer.OutcomeVerifyFailed:
 		lines = append(lines, fmt.Sprintf("%s 安装后仍未检测到明确结果。", product.DisplayName()))
 	default:
 		lines = append(lines, fmt.Sprintf("%s 安装失败。", product.DisplayName()))
+	}
+
+	if result.Outcome == installer.OutcomeActionRequired {
+		lines = append(lines, fmt.Sprintf("下一步：完成安装后执行 %s 或 %s。", statusCommandHint(product), doctorCommandHint(product)))
+		return lines
 	}
 
 	status := result.PostStatus

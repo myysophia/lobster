@@ -76,6 +76,24 @@ func TestInstallSummaryForInstalledButPathNotReady(t *testing.T) {
 	}
 }
 
+func TestInstallSummaryForActionRequiredResult(t *testing.T) {
+	product := products.NewAutoClaw()
+	result := installer.Result{
+		Outcome:    installer.OutcomeActionRequired,
+		PostStatus: detector.Status{},
+	}
+
+	lines := InstallSummary(product, result)
+	joined := strings.Join(lines, "\n")
+
+	if !strings.Contains(joined, "安装入口已打开") {
+		t.Fatalf("应提示已交接到官方下载流程，实际输出：%s", joined)
+	}
+	if !strings.Contains(joined, "lobster autoclaw status") || !strings.Contains(joined, "lobster autoclaw doctor") {
+		t.Fatalf("应提示安装后复查命令，实际输出：%s", joined)
+	}
+}
+
 func TestDoctorSummaryForCommandAvailable(t *testing.T) {
 	product := products.NewWorkBuddy()
 	info := platform.Info{OS: platform.Darwin, Arch: "arm64", HasDesktop: true}

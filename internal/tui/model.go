@@ -47,9 +47,14 @@ func newModel(defaultProduct string) model {
 	selected := items[0]
 	currentScreen := screenProductSelect
 	currentIndex := 0
-	if defaultProduct == "workbuddy" {
-		selected = findProduct(items, "workbuddy")
-		currentScreen = screenWorkBuddyWelcome
+
+	if defaultProduct != "" {
+		selected = findProduct(items, defaultProduct)
+		if selected.Key == "workbuddy" {
+			currentScreen = screenWorkBuddyWelcome
+		} else if selected.Key == defaultProduct {
+			currentScreen = screenComingSoon
+		}
 	}
 
 	for index, item := range items {
@@ -180,6 +185,9 @@ func (m model) updateProductSelect(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 func (m model) updateComingSoon(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	switch {
 	case keyMatches(msg, "esc", "enter"):
+		if m.defaultProduct != "" {
+			return m, tea.Quit
+		}
 		m.screen = screenProductSelect
 	}
 	return m, nil
